@@ -1,0 +1,483 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1.15in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{fancyvrb}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!45!black,
+            citecolor=blue!45!black]{hyperref}
+\usepackage{titlesec}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.7em}{}
+
+\setlength{\parskip}{0.35em}
+\setlength{\parindent}{0pt}
+
+\newcommand{\stcmd}[1]{\texttt{#1}}
+\DefineVerbatimEnvironment{stata}{Verbatim}
+  {fontsize=\small,frame=leftline,framerule=0.8pt,rulecolor=\color{black!25},
+   xleftmargin=6pt,framesep=8pt}
+\usepackage{xcolor}
+
+\title{\textbf{copulaendog}: instrument-free copula corrections\\
+       for endogenous regressors in Stata and Python}
+\author{Ported from the R implementations of\\
+        Rouven E.\ Haschka and Ashwin Malshe}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+\stcmd{copulaendog} corrects endogenous regressors in a linear model when no
+instrument is available. The dependence between the endogenous regressor and
+the structural error is modelled with a Gaussian copula, and the resulting
+control function is added to the regression. Five cross-sectional estimators
+are implemented behind one interface: Park and Gupta (2012), the two-stage
+copula generated regressor approach of Yang, Qian and Xie (2025), the
+between-regressor correlation variant of Haschka (2025a), the
+nonlinear-transformation approach of Breitung, Mayer and Wied (2024), and the
+adjusted estimator of Liengaard et al.\ (2025). Seven marginal CDF estimators
+are available for the copula transformation, inference is by pairs bootstrap,
+and a \stcmd{validity} report walks the identification requirements the
+literature states. This document describes the Stata command
+\stcmd{copulaendog} and the companion Python package \stcmd{copulaendog}, both
+ported from the R reference implementation of Haschka and from the
+\stcmd{endogCopula} package of Malshe.
+\end{abstract}
+
+\section{Credit}
+
+This software is a port. The econometrics, the design of the interface, and
+the reference code are the work of two authors, and neither the Stata command
+nor the Python package would exist without them:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.3em]
+\item \textbf{Rouven E.\ Haschka}, \emph{Copula-based endogeneity corrections
+      in R}, \\
+      \url{https://github.com/HashtagHaschka/Copula-based-endogeneity-corrections} \\
+      ORCID \url{https://orcid.org/0000-0002-2916-9745}. This is the reference
+      implementation. Every estimator, every CDF estimator, the bootstrap, the
+      diagnostics and the validity report are ported from it.
+\item \textbf{Ashwin Malshe}, \emph{endogCopula: Endogeneity Corrections via
+      Gaussian Copulas}, \\
+      \url{https://github.com/ashgreat/endogCopula}. The packaged R version of
+      the same estimators, which shaped how the port is organised into modules
+      and what the documented interface looks like.
+\end{itemize}
+
+If this code contributes to published work, please cite both of those, and the
+paper behind whichever estimator was used. The list is in
+Section~\ref{sec:refs}.
+
+\section{The model}
+
+Let $y$ be the outcome, $P$ a vector of endogenous regressors and $W$ a vector
+of exogenous ones. The structural model is
+\begin{equation}
+y_i \;=\; \mu + P_i'\alpha + W_i'\beta + \xi_i ,
+\qquad \operatorname{corr}(P_i, \xi_i) \neq 0 ,
+\label{eq:structural}
+\end{equation}
+so OLS is biased. With an instrument one would run two-stage least squares.
+The copula approach replaces the instrument with a distributional assumption:
+the dependence between $P$ and $\xi$ is a Gaussian copula. Writing
+$P^*_k = \Phi^{-1}(F_k(P_k))$ for the normal score of the $k$th endogenous
+regressor and $\xi^* = \xi/\sigma$, the assumption is that $(P^*, \xi^*)$ is
+jointly normal. Then
+\begin{equation}
+E[\xi_i \mid P_i] \;=\; \sigma \sum_k \rho_k P^*_{ik},
+\label{eq:cf}
+\end{equation}
+and adding $\hat P^*$ to \eqref{eq:structural} as a control function removes
+the bias. The estimator is ordinary least squares on the augmented regression
+\begin{equation}
+y_i \;=\; \mu + P_i'\alpha + W_i'\beta + C_i'\gamma + u_i .
+\label{eq:augmented}
+\end{equation}
+
+What identifies the model is \emph{non-normality} of $P$. If $P$ is normal
+then $\Phi^{-1}(F(P))$ is an affine function of $P$ itself, $C$ is collinear
+with the regressors, and \eqref{eq:augmented} has no solution. This is not a
+technicality to be checked afterwards: it is the entire source of
+identification, and it is why the \stcmd{validity} report leads with the
+shape of $P$.
+
+In a finite sample the failure is quieter than that, and worth recognising.
+$\hat F$ is not the true normal CDF, so a near-normal $P$ leaves a design that
+is nearly rather than exactly singular: the model estimates, and the estimate
+is badly wrong. On $n = 400$ draws with a standard normal $P$ and a true
+$\alpha$ of $2.0$, the correction returns $2.54$ with a standard error of
+$0.51$ against an OLS standard error of $0.03$ --- an ICON above 15. Nothing
+errors out. The diagnostics are what catch it, which is why they are printed
+rather than merely stored.
+
+The five estimators differ in how $C$ is built.
+
+\subsection{The estimators}
+
+\textbf{PG, Park and Gupta (2012).} The original.
+$C_k = \Phi^{-1}(\hat F_k(P_k))$, added directly. Assumes
+$\operatorname{corr}(W, P^*) = 0$. This assumption is what motivated
+everything that followed, and it is testable: \stcmd{validity} reports it.
+
+\textbf{2sCOPE, Yang, Qian and Xie (2025).} Transforms the exogenous
+regressors too, and residualises:
+\begin{equation}
+C_k = P^*_k - \delta_k' W^* ,
+\end{equation}
+where $W^* = \Phi^{-1}(\hat F(W))$ and $\delta_k$ comes from a first-stage
+regression of $P^*_k$ on $W^*$ alone --- never on the other endogenous
+regressors. The correction is then orthogonal to $W$ by construction, so the
+uncorrelatedness assumption is not needed. The first stage carries an
+intercept.
+
+\textbf{IMA, Haschka (2025a).} The same construction without an intercept in
+the first stage, which is what the paper's derivation of $\rho$ requires: the
+slope of $P^*$ on $W^*$ is then the Pearson correlation between the two. In
+practice the two estimators are very close; the gap widens the further the
+transformed exogenous regressors sit from mean zero.
+
+\textbf{BMW, Breitung, Mayer and Wied (2024).} Reverses the order of the two
+operations. First regress $P$ on $W$ by OLS on the \emph{raw} variables and
+keep the residual $\hat e$; then take its rank transform,
+$C = \Phi^{-1}(\text{rank}(\hat e)/(n+1))$. Same two ingredients, opposite
+order, and the two are not reparameterisations of one another: their abstract
+puts the difference plainly, that 2sCOPE ``calculate[s] residuals from a
+regression of the transformed regressors, thereby assuming a particular
+nonlinear dependence.'' Two consequences show up in the output. The
+identification requirement now falls on $\hat e$ rather than on $P$, so
+\stcmd{validity} tests $\hat e$; and their Corollary 3.2 makes the textbook
+$t$ statistic valid for testing $\rho = 0$, so a Durbin--Hausman--Wu test is
+reported next to the bootstrap one.
+
+\textbf{JAMS, Liengaard et al.\ (2025).} Lets the copula structure differ
+across the categories of the discrete exogenous regressors. With $d_P$
+endogenous and $d_W$ continuous exogenous regressors,
+\begin{equation}
+C(P_i, W_i) = \bigl( C(P_i)' \;\; C(W_i)' \bigr)\,\Sigma^{-1}
+              \begin{bmatrix} I_{d_P} \\ 0 \end{bmatrix},
+\end{equation}
+with $\Sigma$ the variance--covariance matrix of $(C(P), C(W))$ --- the
+covariance matrix, not the correlation matrix; the two give different linear
+combinations and therefore different estimates. Conditioning on a set of
+categorical controls estimates $\Sigma$ and the marginal CDFs inside each joint
+category, so every copula column is zero outside its own cell.
+
+\subsection{Estimating the marginal CDF}
+
+The literature disagrees on how $\hat F$ should be estimated, so all of the
+proposals are implemented and the choice is free (except in BMW).
+
+\begin{center}
+\small
+\begin{tabular}{llp{6.4cm}}
+\toprule
+Option & Source & What it is \\
+\midrule
+\stcmd{kde.silverman} & Park \& Gupta (2012)  & integrated Epanechnikov kernel density, Silverman bandwidth \\
+\stcmd{kde.cv}        & Li, Li \& Racine (2017) & the same, cross-validated bandwidth \\
+\stcmd{kde.plugin}    & Polansky \& Baker (2000) & Gaussian kernel CDF, plug-in bandwidth \\
+\stcmd{ecdf.fixed}    & Becker et al.\ (2022) & empirical CDF with replaced boundary \\
+\stcmd{ecdf.adj}      & Liengaard et al.\ (2025) & adjusted ECDF \\
+\stcmd{rank.n}        & Qian, Koschmann \& Xie (2025) & rank$/n$ with a top correction \\
+\stcmd{rank.n1}       & Breitung et al.\ (2024) & rank$/(n{+}1)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Defaults follow each estimator's own paper: \stcmd{kde.silverman} for PG,
+\stcmd{rank.n} for 2sCOPE and IMA, \stcmd{ecdf.adj} for JAMS, \stcmd{rank.n1}
+for BMW. BMW is the one place where the choice is not free, because its
+Proposition 3.1 is derived for rank$/(n{+}1)$.
+
+\stcmd{kde.cv} is available in Python but not in Stata: it needs an $O(n^2)$
+cross-validation inside every bootstrap replicate.
+
+\subsection{Inference}
+
+$C$ is a generated regressor, so the textbook OLS standard errors from
+\eqref{eq:augmented} are wrong for the structural coefficients. Inference is
+by a plain pairs bootstrap: draw row indices with replacement, recompute the
+copula terms on the resample, refit. This is the procedure used in every one
+of the underlying papers. Resamples that lose a factor level, or that leave a
+JAMS category too thin to estimate its own $\Sigma$, are rejected and redrawn;
+if that happens often the command says so, because the standard errors are
+then conditional on the draws that survived.
+
+Each fit also carries the uncorrected OLS estimate from the \emph{same}
+resamples. The ratio of the two standard errors is ICON, the standard error
+inflation of Qian, Koschmann and Xie (2025). Values above 6 flag weak
+identification or a misspecified dependence model.
+
+\section{The Stata command}
+
+\subsection{Syntax}
+
+\begin{stata}
+copulaendog depvar endogvars [if] [in] [, exog(varlist) method(name)
+    cdf(name) ties(name) nboots(#) seed(#) conditional(varlist)
+    discrete(varlist) fsexclude(varlist) generate(stub) noconstant
+    level(#) validity ]
+\end{stata}
+
+Position decides. Variables listed after \emph{depvar} are endogenous and each
+gets its own copula term; everything in \stcmd{exog()} is exogenous and gets
+none. Endogenous regressors must be plain numeric variables, because a factor
+variable expands into several columns and has no single copula term; put
+categorical controls in \stcmd{exog()}, where factor-variable notation is
+allowed.
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+Option & Default & Meaning \\
+\midrule
+\stcmd{exog()}        & --- & exogenous regressors, factor variables allowed \\
+\stcmd{method()}      & \stcmd{pg} & \stcmd{pg}, \stcmd{2scope}, \stcmd{ima}, \stcmd{bmw}, \stcmd{jams} \\
+\stcmd{cdf()}         & per estimator & marginal CDF estimator \\
+\stcmd{ties()}        & \stcmd{max} & \stcmd{max} for the counting function, \stcmd{average} for midranks \\
+\stcmd{nboots()}      & 199 & bootstrap replicates \\
+\stcmd{seed()}        & --- & seed; without it the draws are not reproducible \\
+\stcmd{conditional()} & --- & JAMS: what the copula structure may vary over \\
+\stcmd{discrete()}    & --- & JAMS: exogenous regressors to keep out of $C$ \\
+\stcmd{fsexclude()}   & --- & exogenous regressors to hold out of the first stage \\
+\stcmd{generate()}    & --- & keep the copula terms as variables \\
+\stcmd{validity}      & --- & report the identification checks \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{A worked example}
+
+The data are simulated so that the assumptions can be checked against the
+truth. The endogenous regressor is $P = \exp(0.8 v + 0.6 w)$ with
+$\operatorname{corr}(v, \xi) = 0.6$, and
+\[
+y = 1 + 2P + 1.5x - 0.5w + \xi .
+\]
+Because $P$ is a strictly monotone function of the normal variate
+$0.8v + 0.6w$, the Gaussian copula between $P$ and $\xi$ holds exactly, while
+$P$ itself is lognormal and therefore strongly non-normal --- exactly the
+setting the estimators are built for. Note the $0.6w$ term: it makes
+$\operatorname{corr}(W, P^*) \neq 0$, so the Park and Gupta assumption fails by
+construction and the later estimators should do better.
+
+\begin{stata}
+. use simdata, clear
+. regress y P x w
+. copulaendog y P, exog(x w) method(pg)     nboots(499) seed(1) validity
+. copulaendog y P, exog(x w) method(2scope) nboots(499) seed(1)
+. copulaendog y P, exog(x w) method(bmw)    nboots(499) seed(1)
+\end{stata}
+
+On $n = 2000$ draws from that design the estimates of $\alpha$, whose true
+value is $2.000$, are as follows. (These are from the Python port, which has
+been checked against the R reference to $10^{-12}$; the file is
+\texttt{validation/vignette\_data.csv}, so they can be reproduced in any of the
+three languages.)
+
+\begin{center}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+& $\hat\alpha$ & boot.\ SE & $\hat\rho$ & max ICON \\
+\midrule
+OLS, uncorrected & 2.2066 & 0.0106 & --- & --- \\
+PG               & 2.0039 & 0.0320 & 0.669 & 0.91 \\
+2sCOPE           & 2.0136 & 0.0258 & 0.470 & 1.12 \\
+IMA              & 2.0136 & 0.0258 & 0.470 & 1.12 \\
+BMW              & 2.0109 & 0.0220 & 0.512 & 1.54 \\
+JAMS             & 2.0125 & 0.0254 & 0.470 & 1.13 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Uncorrected OLS is off by $0.21$, about twenty of its own standard errors. All
+five corrections land within $0.014$ of the truth, and every ICON is close to
+one, so the correction costs almost nothing in precision here. The price of
+the correction is visible all the same: the standard error on $\hat\alpha$
+triples under PG.
+
+The \stcmd{validity} report on the same fit rejects the uncorrelatedness
+assumption --- correctly, since we built the data that way, with
+$R^2 = 0.349$, $F = 535.1$ and $p < 10^{-100}$ for the joint test --- and
+points the user at the estimators that do not need it. It also confirms that
+$P$ is non-normal enough to identify the model on both the Yang and the Becker
+criteria (skewness $10.0$, AD $182.9$, KS $p < 10^{-90}$), which is what makes
+this design work at all.
+
+Two endogenous regressors, a factor control, and JAMS with the copula
+structure varying over the categories of \stcmd{store}:
+
+\begin{stata}
+. copulaendog y price adspend, exog(feature) method(2scope) seed(1)
+. copulaendog y price, exog(feature i.store) method(bmw) seed(1)
+. copulaendog y price, exog(feature i.store) method(jams) ///
+      conditional(store) seed(1)
+\end{stata}
+
+Prediction excludes the copula terms, because they are endogeneity controls
+and not part of the causal model:
+
+\begin{stata}
+. predict yhat
+. predict xi, residuals
+\end{stata}
+
+\subsection{Reading the validity report}
+
+The report keeps three sources apart rather than merging them into one verdict,
+because they do not fully agree.
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.3em]
+\item \textbf{Non-normality} of $P$ --- or of the first-stage residuals under
+      BMW. Two criteria are shown. ``Yang ok'' is the Kolmogorov--Smirnov
+      criterion of Yang, Qian and Xie (2025), $p < .05$, which they prefer
+      precisely because it is conservative. ``Becker ok'' is the C5.0 decision
+      tree of Becker, Proksch and Ringle (2022, Fig.~8), which combines
+      skewness with the Anderson--Darling and Cram\'er--von Mises statistics
+      and depends on the sample size. Becker et al.\ report a correlation of
+      $.66$ between the AD statistic and the copula term's $t$ statistic
+      against $-.03$ for KS, which is why both are shown.
+\item \textbf{The uncorrelatedness assumption}, printed only for PG. Both the
+      Holm-adjusted single correlations and a joint test are reported; the
+      assumption is about the whole set, so the joint test is the one that
+      matters.
+\item \textbf{The structural error.} Becker et al.\ find that a non-normal
+      error breaks consistency in models with an intercept; Yang et al.\ and
+      Qian et al.\ permit one under the decomposition $\xi = U + V$. The
+      residuals show $\xi$ rather than $U$, so their shape settles neither
+      question, and the report says so.
+\item \textbf{ICON}, the standard error inflation relative to uncorrected OLS.
+\end{enumerate}
+
+\section{The Python package}
+
+The same five estimators, the same seven CDF estimators, the same bootstrap:
+
+\begin{stata}
+import pandas as pd
+from copulaendog import copreg, sim_endog
+
+df  = sim_endog(n=2000, seed=123)
+fit = copreg("y ~ P | x + w", df, method="2scope", nboots=499, seed=1)
+
+print(fit.summary())
+print(fit.validity())
+
+fit.params, fit.bse, fit.vcov      # coefficients and bootstrap covariance
+fit.conf_int(0.95, kind="percentile")
+fit.rho, fit.icon                  # endogeneity measure, SE inflation
+fit.predict(newdata)               # structural model only
+\end{stata}
+
+The formula follows the R interface: terms before the \verb=|= are endogenous,
+terms after it are exogenous. Everything \texttt{patsy} accepts works ---
+\verb=np.log(price)=, \verb=price:feat=, \verb=I(x**2)=, \verb=C(store)=, and
+\verb=- 1= to drop the intercept.
+
+Individual estimators can be called directly --- \texttt{CopRegPG},
+\texttt{CopReg2sCOPE}, \texttt{CopRegIMA}, \texttt{CopRegBMW},
+\texttt{CopRegJAMS} --- and the copula transformation itself is exposed as
+\texttt{copula\_transform(x, cdf, ties)} for use in models this package does
+not cover.
+
+\section{What is not ported}
+
+Three estimators from the R implementation are deliberately out of scope here,
+and the R code should be used for them:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=0.2em]
+\item \textbf{2sCOPE-np} (Hu, Qian and Xie 2025), which replaces the first
+      stage with a nonparametric conditional CDF estimated by the kernel
+      method of Li and Racine (2008). It is the only estimator in the family
+      that tolerates discrete endogenous regressors.
+\item \textbf{PANEL} (Haschka 2022), a linear panel model with fixed effects
+      estimated by maximum likelihood after a forward orthogonal deviations
+      transformation.
+\item \textbf{BAYES} (Haschka 2025b), in which the marginal CDFs are unknown
+      parameters drawn alongside the coefficients rather than plugged in.
+\end{itemize}
+
+\section{Verification}
+
+The Python port is checked against the R reference implementation on a common
+dataset: across ten model specifications --- all five estimators, four CDF
+estimators, an interaction, and JAMS with and without conditioning --- all 75
+coefficients and $\rho$ values agree to within $10^{-12}$, and the six
+closed-form CDF estimators agree to machine precision. The comparison script
+is in \texttt{validation/} and can be rerun.
+
+The Stata port implements the identical algorithms in Mata and ships with a
+self-test do-file, \texttt{validation/stata\_selftest.do}, which runs every
+estimator, compares the copula transformations against the same R reference,
+and prints the coefficients for comparison. Run it once in your own Stata
+installation before relying on the results.
+
+\section{References}
+\label{sec:refs}
+
+\small
+\begin{list}{}{\leftmargin=1.5em \itemindent=-1.5em \itemsep=0.25em}
+
+\item Becker, J.-M., D. Proksch, and C. M. Ringle. 2022. Revisiting Gaussian
+copulas to handle endogenous regressors. \emph{Journal of the Academy of
+Marketing Science} 50: 46--66.
+
+\item Breitung, J., A. Mayer, and D. Wied. 2024. Asymptotic properties of
+endogeneity corrections using nonlinear transformations. \emph{The
+Econometrics Journal} 27(3): 362--383.
+
+\item Haschka, R. E. 2022. Handling endogenous regressors using copulas: A
+generalization to linear panel models with fixed effects and correlated
+regressors. \emph{Journal of Marketing Research} 59(4): 861--880.
+
+\item Haschka, R. E. 2025a. Robustness of copula-correction models in causal
+analysis: Exploiting between-regressor correlation. \emph{IMA Journal of
+Management Mathematics} 36(1): 161--180.
+
+\item Haschka, R. E. 2025b. Bayesian inference for joint estimation models
+using copulas to handle endogenous regressors. \emph{Oxford Bulletin of
+Economics and Statistics}.
+
+\item Hu, X., Y. Qian, and H. Xie. 2025. Correcting endogeneity via
+nonparametric copula control functions. NBER Working Paper 33607.
+
+\item Li, Q., and J. S. Racine. 2008. Nonparametric estimation of conditional
+CDF and quantile functions with mixed categorical and continuous data.
+\emph{Journal of Business \& Economic Statistics} 26(4): 423--434.
+
+\item Li, Q., J. Li, and J. S. Racine. 2017. Cross-validated mixed-datatype
+bandwidth selection for nonparametric cumulative distribution/survivor
+functions. \emph{Econometric Reviews} 36: 970--987.
+
+\item Liengaard, B. D., J.-M. Becker, M. Bennedsen, P. Heiler, L. N. Taylor,
+and C. M. Ringle. 2025. Dealing with regression models' endogeneity by means
+of an adjusted estimator for the Gaussian copula approach. \emph{Journal of
+the Academy of Marketing Science} 53: 279--299.
+
+\item Park, S., and S. Gupta. 2012. Handling endogenous regressors by joint
+estimation using copulas. \emph{Marketing Science} 31(4): 567--586.
+
+\item Polansky, A. M., and E. R. Baker. 2000. Multistage plug-in bandwidth
+selection for kernel distribution function estimates. \emph{Journal of
+Statistical Computation and Simulation} 65: 63--80.
+
+\item Qian, Y., A. Koschmann, and H. Xie. 2025. A practical guide to
+endogeneity correction using copulas. \emph{Journal of Marketing}.
+
+\item Yang, F., Y. Qian, and H. Xie. 2025. Addressing endogeneity using a
+two-stage copula generated regressor approach. \emph{Journal of Marketing
+Research} 62(4): 601--623.
+
+\end{list}
+
+\end{document}

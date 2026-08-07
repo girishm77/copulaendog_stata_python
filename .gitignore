@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# LaTeX build products; vignette.pdf itself is committed
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc
+
+# Stata
+*.smcl
+validation/*.log
+validation/lic.do
+validation/test1.do
+
+.DS_Store
+
+# the upstream clones live here for reference; they are separate projects
+Copula-based-endogeneity-corrections/
+endogCopula/
