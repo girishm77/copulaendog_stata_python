@@ -33,10 +33,15 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest>=7"]
 
+# The two upstream links are labelled with the authors' names rather than with
+# what the repositories contain, so that the sidebar of the PyPI page credits
+# Haschka and Malshe by name to anyone who only ever looks at that page.
+# PyPI caps a label at 32 characters, which is why they are terse.
 [project.urls]
 Homepage = "https://github.com/girishm77/copulaendog_stata_python"
-"Reference implementation (R)" = "https://github.com/HashtagHaschka/Copula-based-endogeneity-corrections"
-"endogCopula (R package)" = "https://github.com/ashgreat/endogCopula"
+"Haschka: original R code" = "https://github.com/HashtagHaschka/Copula-based-endogeneity-corrections"
+"Malshe: endogCopula in R" = "https://github.com/ashgreat/endogCopula"
+"Issues" = "https://github.com/girishm77/copulaendog_stata_python/issues"
 
 # The Python package lives under python/ because the repository also ships a
 # Stata command and a LaTeX vignette.  Keeping the build file at the root is
