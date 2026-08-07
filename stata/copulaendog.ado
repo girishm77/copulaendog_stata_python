@@ -105,22 +105,62 @@ program define copulaendog, eclass sortpreserve
     }
 
     * factor variables in exog() are expanded into temporary indicators, so
-    * that the rest of the command sees a plain design matrix
+    * that the rest of the command sees a plain design matrix.  fvrevar is no
+    * help for this: handed a list of specific levels it rebases them and
+    * returns an all-zero column for whichever one it decides is the base, so
+    * each kept column is built here from what _ms_parse_parts reports.  Note
+    * that fvrevar and generate both reset r(), so the parse is copied into
+    * locals before anything else is run.
     local wnames
     local wvars
     if "`exog'" != "" {
         fvexpand `exog' if `touse'
-        foreach v in `r(varlist)' {
+        local exexp `r(varlist)'
+        foreach v of local exexp {
             _ms_parse_parts `v'
-            local keep = 1
-            if r(omit) local keep = 0
-            if "`r(type)'" == "factor" {
-                if r(base) local keep = 0
+            local ptype  "`r(type)'"
+            local pname  "`r(name)'"
+            local pomit  = r(omit)
+            local pbase  = cond(r(base)    == ., 0, r(base))
+            local plevel = r(level)
+            local pk     = cond(r(k_names) == ., 0, r(k_names))
+            forvalues i = 1/`pk' {
+                local pop`i'  "`r(op`i')'"
+                local pnm`i'  "`r(name`i')'"
+                local plv`i'  = r(level`i')
             }
-            if `keep' local wnames `wnames' `v'
+
+            if `pomit' continue
+            if "`ptype'" == "factor" & `pbase' continue
+
+            if "`ptype'" == "variable" {
+                fvrevar `pname' if `touse'
+                local wvars `wvars' `r(varlist)'
+            }
+            else if "`ptype'" == "factor" {
+                tempvar fv
+                quietly generate byte `fv' = (`pname' == `plevel') if `touse'
+                local wvars `wvars' `fv'
+            }
+            else {
+                * an interaction is the product of its parts, each of which is
+                * either a continuous variable or a single level indicator
+                local expr
+                forvalues i = 1/`pk' {
+                    if inlist("`pop`i''", "c", "co") {
+                        local expr `expr' * `pnm`i''
+                    }
+                    else {
+                        local expr `expr' * (`pnm`i'' == `plv`i'')
+                    }
+                }
+                local expr = substr("`expr'", 3, .)
+                tempvar fv
+                quietly generate double `fv' = `expr' if `touse'
+                local wvars `wvars' `fv'
+            }
+            local wnames `wnames' `v'
         }
-        fvrevar `exog' if `touse'
-        local wvars `r(varlist)'
         local n1 : word count `wnames'
         local n2 : word count `wvars'
         if `n1' != `n2' {
@@ -630,7 +670,7 @@ real scalar ce_dnd0(real scalar sigma, real scalar r)
 real colvector ce_cdf_gauss(real colvector x, real scalar h)
 {
     real scalar n, a, b, M, lo0, hi0, delta, i, j
-    real colvector out, gr, cnt, idx, lo, w, Fg
+    real colvector out, gr, cnt, idx, lo, w, Fg, xb
 
     n = rows(x)
     if (h <= 0 | h >= .) _error("non-positive bandwidth in kernel CDF")
@@ -638,8 +678,12 @@ real colvector ce_cdf_gauss(real colvector x, real scalar h)
     if (n <= ce_exactmax()) {
         out = J(n, 1, .)
         for (a = 1; a <= n; a = a + 500) {
-            b = min((a + 499, n))
-            out[|a \ b|] = rowsum(normal((x[|a \ b|] :- x') / h)) / n
+            b  = min((a + 499, n))
+            // a k x 1 and a 1 x n are not c-conformable in Mata, so the row
+            // of evaluation points is expanded to k x n before subtracting
+            xb = x[|a \ b|]
+            out[|a \ b|] =
+                rowsum(normal((xb :- J(rows(xb), 1, 1) * x') / h)) / n
         }
         return(out)
     }
@@ -686,14 +730,16 @@ real scalar ce_psins(real scalar r, real scalar sigma)
 real scalar ce_kfe(real colvector x, real scalar g, real scalar r)
 {
     real scalar n, a, b, s, M, lo0, hi0, delta, i, j, tot
-    real colvector cnt, idx, lo, w, k, sl
+    real colvector cnt, idx, lo, w, k, sl, xb
 
     n = rows(x)
     if (n <= ce_exactmax()) {
         s = 0
         for (a = 1; a <= n; a = a + 500) {
-            b = min((a + 499, n))
-            s = s + sum(ce_dnorm_deriv(x[|a \ b|] :- x', g, r))
+            b  = min((a + 499, n))
+            // see ce_cdf_gauss(): the k x 1 block has to be widened to k x n
+            xb = x[|a \ b|]
+            s  = s + sum(ce_dnorm_deriv(xb :- J(rows(xb), 1, 1) * x', g, r))
         }
         return(s / n^2)
     }

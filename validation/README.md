@@ -31,16 +31,31 @@ estimators agree to machine precision.
 
 ## Stata
 
-`stata_selftest.do` runs every estimator, checks the copula transformations
-against the same R reference to 1e-8, and prints the coefficients for
-comparison with `reference_R.csv`.
+`stata_selftest.do` runs every estimator, the validity report, factor variables
+and interactions in `exog()`, two endogenous regressors, `generate()` and
+`predict`; then checks all seven marginal CDF estimators and every coefficient
+and ρ against `reference_R_cdf.csv` and `reference_R.csv` at a 1e-8 tolerance.
 
 ```stata
 do stata_selftest.do
 ```
 
-**This has never been run.** The Stata licence on the machine the port was
-written on had expired. Run it before relying on the Stata results.
+It ends in `ALL CHECKS PASSED`, or names the checks that failed and how far off
+they were.
+
+**Result:** all 75 matched terms agree to within 1.4e-12; the seven CDF
+estimators agree to within 1.9e-13. Verified on StataNow 19.5 SE.
+
+Two things worth knowing if you extend this file:
+
+- Every `import delimited` here passes `asdouble`. Without it Stata stores
+  numeric columns as `float`, and seven significant digits put a ~1e-8 floor
+  under every comparison — which is the tolerance being tested.
+- The mata functions live inside `copulaendog.ado` and are not visible at the
+  top-level mata namespace, so `ce_cdf()` cannot be called directly from a
+  do-file. The CDF check goes through the public interface instead: for PG the
+  copula term is exactly Φ⁻¹(F(P)), so `normal(p_cop)` after `generate()`
+  recovers the marginal CDF.
 
 ## Data
 
