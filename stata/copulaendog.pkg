@@ -1,0 +1,38 @@
+v 3
+d copulaendog: instrument-free Gaussian copula corrections for endogenous regressors
+d
+d Corrects endogenous regressors in a linear model when no instrument is
+d available. The dependence between the regressor and the structural error is
+d modelled with a Gaussian copula and the resulting control function is added
+d to the regression. Five cross-sectional estimators behind one interface:
+d Park & Gupta (2012), the two-stage copula generated regressor approach of
+d Yang, Qian & Xie (2025), the between-regressor correlation variant of
+d Haschka (2025), the nonlinear-transformation approach of Breitung, Mayer &
+d Wied (2024), and the adjusted estimator of Liengaard et al. (2025). Six
+d marginal CDF estimators, bootstrap inference, and a validity report that
+d walks the identification requirements the literature states.
+d
+d This is a port. The econometrics and the reference code are the work of
+d Rouven E. Haschka, whose R implementation
+d   Copula-based endogeneity corrections in R
+d   https://github.com/HashtagHaschka/Copula-based-endogeneity-corrections
+d   ORCID https://orcid.org/0000-0002-2916-9745
+d every estimator here is derived from, and of Ashwin Malshe, whose packaged
+d R version
+d   endogCopula
+d   https://github.com/ashgreat/endogCopula
+d shaped how the port is organised and documented. Please cite both, and the
+d paper behind the estimator you use, in any work this contributes to.
+d
+d Requires: Stata version 16
+d
+d Distribution-Date: 20260807
+d
+d Author: Girish Mallapragada
+d Support: https://github.com/girishm77/copulaendog_stata_python/issues
+d
+f copulaendog.ado
+f copulaendog_p.ado
+f copulaendog.sthlp
+f quickstart.do
+f examples.do

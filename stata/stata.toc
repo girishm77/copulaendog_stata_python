@@ -1,0 +1,8 @@
+v 3
+d copulaendog
+d
+d Instrument-free Gaussian copula corrections for endogenous regressors.
+d Ported from the R reference implementation of Rouven E. Haschka and from
+d endogCopula by Ashwin Malshe.
+d
+p copulaendog  instrument-free copula corrections for endogenous regressors

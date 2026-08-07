@@ -34,34 +34,78 @@ paper behind the estimator you used.
 
 ---
 
-## Install
+## Try it without installing anything
 
-**Stata.** Copy `stata/copulaendog.ado`, `stata/copulaendog_p.ado` and
-`stata/copulaendog.sthlp` into your personal ado directory, or point at them
-from a do-file:
+Download one file and run it. Both do-files fetch the command straight from
+this repository into a temporary directory, so there is nothing else to
+download, no working directory to set, and nothing left on your machine
+afterwards.
+
+- **[`stata/quickstart.do`](stata/quickstart.do)** — the short tour. One
+  dataset, every estimator, `validity` throughout.
+- **[`stata/examples.do`](stata/examples.do)** — the full reference. Every
+  option of every estimator spelled out, defaults included, plus `auto.dta`.
 
 ```stata
-adopath ++ "/path/to/copulaendog/stata"
+do quickstart.do
+```
+
+---
+
+## Install
+
+### Stata
+
+```stata
+ssc install copulaendog
+```
+
+Or straight from this repository, no SSC required:
+
+```stata
+net install copulaendog, ///
+    from("https://raw.githubusercontent.com/girishm77/copulaendog_stata_python/main/stata") ///
+    replace
+```
+
+Or, from a clone, without installing:
+
+```stata
+adopath ++ "/path/to/copulaendog_stata_python/stata"
 help copulaendog
 ```
 
-**Python.** Install straight from the repository; numpy, scipy, pandas and
-patsy come with it.
+Requires Stata 16 or later. No Python needed — the estimators are written in
+Mata and the command is self-contained.
+
+### Python
+
+```bash
+pip install copulaendog
+```
+
+Or straight from this repository:
 
 ```bash
 pip install git+https://github.com/girishm77/copulaendog_stata_python
 ```
 
-Or, to work on the source without installing it:
+Or, from a clone, without installing:
 
 ```bash
 pip install numpy scipy pandas patsy
-export PYTHONPATH="/path/to/copulaendog/python:$PYTHONPATH"
+export PYTHONPATH="/path/to/copulaendog_stata_python/python:$PYTHONPATH"
 ```
 
 Declared for Python 3.9 and later. The test suite has been run on 3.13 against
 two dependency stacks: numpy 2.3 / scipy 1.16 / pandas 2.3, and numpy 2.5 /
 scipy 1.18 / pandas 3.0.
+
+> **Status of the two package archives.** `ssc install` and `pip install
+> copulaendog` go live once the submissions are accepted — SSC is reviewed by
+> hand and PyPI takes a release upload. Until then use the `net install` and
+> `pip install git+...` forms above, which work today and install exactly the
+> same code.
 
 ---
 
