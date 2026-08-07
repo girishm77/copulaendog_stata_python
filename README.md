@@ -200,9 +200,13 @@ which flags weak identification above 6.
 
 ## Documentation
 
-`docs/vignette.pdf` is the full write-up: the model, what separates the five
-estimators, how to read the validity report, and a worked example. In Stata,
-`help copulaendog`.
+| Document | What it is for |
+|---|---|
+| [`docs/vignette.pdf`](docs/vignette.pdf) | The write-up: the model, what separates the five estimators, how to read the validity report, a worked example |
+| [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | How to check every claim made here yourself, with the exact commands and the results to expect |
+| [`docs/PROJECT-LOG.md`](docs/PROJECT-LOG.md) | How the port was built, the defects found on the way, and where the traps are |
+| [`CHANGELOG.md`](CHANGELOG.md) | Release history |
+| `help copulaendog` | The full Stata syntax |
 
 ---
 
