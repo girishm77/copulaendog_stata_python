@@ -7,6 +7,7 @@
 {viewerjumpto "Estimators" "copulaendog##estimators"}{...}
 {viewerjumpto "Examples" "copulaendog##examples"}{...}
 {viewerjumpto "Stored results" "copulaendog##results"}{...}
+{viewerjumpto "Author" "copulaendog##author"}{...}
 {viewerjumpto "References" "copulaendog##references"}{...}
 
 {title:Title}
@@ -271,6 +272,27 @@ boundary-condition flags{p_end}
 {synopt:{cmd:e(dhw)}}Durbin-Hausman-Wu test ({cmd:bmw} only){p_end}
 {synopt:{cmd:e(assumption5)}}corr(W, copula term) and Holm p values
 ({cmd:pg} only){p_end}
+
+
+{marker author}{...}
+{title:Author}
+
+{pstd}
+Girish Mallapragada{break}
+Indiana University{break}
+{browse "https://www.linkedin.com/in/girishmallapragada/":LinkedIn} {c |}
+{browse "https://scholar.google.com/citations?user=CixA1fgAAAAJ&hl=en":Google Scholar}
+
+{pstd}
+This command is a port, developed with the assistance of Claude. The
+estimators, and the reference code every one of them is derived from, are the
+work of Rouven E. Haschka and Ashwin Malshe; see
+{help copulaendog##references:References} below. Please cite their work, and
+the paper behind the estimator you use, in anything this contributes to.
+
+{pstd}
+Bug reports and questions:{break}
+{browse "https://github.com/girishm77/copulaendog_stata_python/issues"}
 
 
 {marker references}{...}
