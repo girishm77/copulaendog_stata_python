@@ -416,11 +416,24 @@ coefficients and $\rho$ values agree to within $10^{-12}$, and the six
 closed-form CDF estimators agree to machine precision. The comparison script
 is in \texttt{validation/} and can be rerun.
 
-The Stata port implements the identical algorithms in Mata and ships with a
-self-test do-file, \texttt{validation/stata\_selftest.do}, which runs every
-estimator, compares the copula transformations against the same R reference,
-and prints the coefficients for comparison. Run it once in your own Stata
-installation before relying on the results.
+The Stata port implements the identical algorithms in Mata and is checked
+against the same reference on the same ten specifications. All 75 coefficients
+and $\rho$ values agree to within $1.4 \times 10^{-12}$. Of the six marginal
+CDF estimators it implements, five agree to machine precision and
+\texttt{kde.silverman} agrees to $1.9 \times 10^{-13}$; it is the one estimator
+of the six that sums a kernel over every observation for each evaluation point,
+so the two implementations accumulate rounding differently. The seventh
+estimator, \texttt{kde.cv}, is available only in Python: the cross-validated
+bandwidth of Li, Li and Racine (2017) is not implemented in Mata, and the
+command rejects it rather than silently substituting another.
+
+The self-test do-file, \texttt{validation/stata\_selftest.do}, carries out both
+comparisons and additionally exercises the validity report, factor variables
+and interactions in \texttt{exog()}, two endogenous regressors, and
+\texttt{generate()} and \texttt{predict}. It ends in \texttt{ALL CHECKS PASSED},
+or names the checks that failed and how far off they were. The figures quoted
+here were produced under StataNow 19.5 SE; rerunning the file in your own
+installation reproduces them.
 
 \section{References}
 \label{sec:refs}
