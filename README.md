@@ -152,8 +152,8 @@ python3 compare_python.py
 
 **Stata: verified against the R reference.** On the same ten specifications,
 all 75 coefficients and ρ values agree with the R implementation to within
-1.4e-12, and all seven marginal CDF estimators agree to within 1.9e-13. Run it
-yourself with:
+1.4e-12, and all six marginal CDF estimators it implements agree to within
+1.9e-13. Run it yourself with:
 
 ```stata
 cd validation

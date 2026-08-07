@@ -33,8 +33,14 @@ estimators agree to machine precision.
 
 `stata_selftest.do` runs every estimator, the validity report, factor variables
 and interactions in `exog()`, two endogenous regressors, `generate()` and
-`predict`; then checks all seven marginal CDF estimators and every coefficient
+`predict`; then checks all six marginal CDF estimators and every coefficient
 and ρ against `reference_R_cdf.csv` and `reference_R.csv` at a 1e-8 tolerance.
+
+It also runs `cdf(kde.plugin)` at n = 400, 1499, 1500, 1501 and 2500. That is
+the only estimator whose code path depends on the sample size: `ce_cdf_gauss()`
+and `ce_kfe()` evaluate the kernel exactly up to `ce_exactmax()` = 1500
+observations and bin it on a grid above, and everything else in the file runs
+at n = 800, so without the sweep one of the two branches goes untested.
 
 ```stata
 do stata_selftest.do
@@ -43,8 +49,12 @@ do stata_selftest.do
 It ends in `ALL CHECKS PASSED`, or names the checks that failed and how far off
 they were.
 
-**Result:** all 75 matched terms agree to within 1.4e-12; the seven CDF
+**Result:** all 75 matched terms agree to within 1.4e-12; the six CDF
 estimators agree to within 1.9e-13. Verified on StataNow 19.5 SE.
+
+`cdf(kde.cv)` is not part of this list: the cross-validated bandwidth of Li,
+Li & Racine (2017) is Python-only, and the Stata command rejects it with a
+message pointing at the R or Python implementation.
 
 Two things worth knowing if you extend this file:
 

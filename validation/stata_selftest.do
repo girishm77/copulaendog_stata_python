@@ -34,6 +34,34 @@ foreach m in pg 2scope ima bmw jams {
     }
 }
 
+* cdf(kde.plugin) is the one estimator whose code path depends on the sample
+* size: ce_cdf_gauss() and ce_kfe() evaluate the kernel exactly at or below
+* ce_exactmax() = 1500 observations and bin it on a grid above.  The exact path
+* is the one that was broken, and everything else in this file runs at n = 800,
+* so the gate is crossed here from both sides.  Any n that fails but whose
+* neighbour passes points at one of those two branches.
+di as txt _n ">>> cdf(kde.plugin) either side of ce_exactmax() = 1500"
+foreach n in 400 1499 1500 1501 2500 {
+    preserve
+    quietly {
+        clear
+        set obs `n'
+        set seed 42
+        generate double w = rnormal()
+        generate double x = rnormal()
+        generate double p = exp(0.8*rnormal() + 0.6*w)
+        generate double y = 1 + 2*p + 1.5*x - 0.5*w + rnormal()
+    }
+    capture quietly copulaendog y p, exog(x w) method(pg) cdf(kde.plugin) ///
+        nboots(5) seed(1)
+    if _rc {
+        di as err "   n = `n': FAILED with rc = " _rc
+        local ++nfail
+    }
+    else di as txt "   n = `n': ok, b[p] = " %7.4f _b[p]
+    restore
+}
+
 di as txt _n ">>> validity report"
 capture noisily copulaendog y p, exog(x w) method(pg) nboots(20) seed(1) validity
 if _rc {
