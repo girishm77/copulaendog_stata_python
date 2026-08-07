@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "copulaendog"
+version = "0.1.0"
+description = "Instrument-free Gaussian copula corrections for endogenous regressors"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE", "LICENSE.ADDITIONAL-TERMS.md"]
+authors = [{ name = "Girish Mallapragada" }]
+keywords = ["endogeneity", "copula", "control function", "econometrics",
+            "causal inference", "instrumental variables"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "numpy>=1.22",
+    "scipy>=1.8",
+    "pandas>=1.4",
+    "patsy>=0.5",
+    # patsy 1.0.2 imports packaging without declaring it, so a clean install
+    # dies on "No module named 'packaging'" at import time.  Declared here so
+    # that users do not have to work around someone else's metadata bug.
+    "packaging",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://github.com/girishm77/copulaendog"
+"Reference implementation (R)" = "https://github.com/HashtagHaschka/Copula-based-endogeneity-corrections"
+"endogCopula (R package)" = "https://github.com/ashgreat/endogCopula"
+
+# The Python package lives under python/ because the repository also ships a
+# Stata command and a LaTeX vignette.  Keeping the build file at the root is
+# what lets `pip install git+https://github.com/girishm77/copulaendog` work
+# without a subdirectory fragment, and what puts README.md and the two licence
+# files into the distribution -- the GPL and its section 7(b) attribution term
+# have to travel with the code.
+[tool.setuptools]
+package-dir = { "" = "python" }
+packages = ["copulaendog"]
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]
+filterwarnings = ["ignore::UserWarning"]

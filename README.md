@@ -45,12 +45,23 @@ adopath ++ "/path/to/copulaendog/stata"
 help copulaendog
 ```
 
-**Python.** Needs numpy, scipy, pandas and patsy.
+**Python.** Install straight from the repository; numpy, scipy, pandas and
+patsy come with it.
+
+```bash
+pip install git+https://github.com/girishm77/copulaendog
+```
+
+Or, to work on the source without installing it:
 
 ```bash
 pip install numpy scipy pandas patsy
 export PYTHONPATH="/path/to/copulaendog/python:$PYTHONPATH"
 ```
+
+Declared for Python 3.9 and later. The test suite has been run on 3.13 against
+two dependency stacks: numpy 2.3 / scipy 1.16 / pandas 2.3, and numpy 2.5 /
+scipy 1.18 / pandas 3.0.
 
 ---
 
@@ -196,9 +207,11 @@ python/copulaendog/     the Python package
   diagnostics.py        normality tests and model diagnostics
   estimators.py         the five user-facing estimators and copreg()
   simulate.py           a simulated dataset built for the assumptions
+python/tests/           the Python test suite
 stata/                  copulaendog.ado, copulaendog_p.ado, copulaendog.sthlp
 docs/vignette.{tex,pdf} the write-up
 validation/             R reference run, Python comparison, Stata self-test
+pyproject.toml          build file; at the root so that pip install git+... works
 ```
 
 ---

@@ -82,9 +82,20 @@ def cvm_test(x: np.ndarray):
 
 
 def ks_normal(v: np.ndarray):
-    """Kolmogorov-Smirnov test against a fitted normal.  Returns (D, p)."""
+    """Kolmogorov-Smirnov test against a fitted normal.  Returns (D, p).
+
+    The sample is standardised and compared with the standard normal rather
+    than passing the fitted mean and standard deviation through kstest's
+    args=.  The two are the same test -- the empirical CDF of (v - m)/s
+    against Phi is the empirical CDF of v against Phi((. - m)/s) -- but scipy
+    1.18 broke the args= form for the named "norm" distribution, and this
+    form works on every version.
+    """
     v = np.asarray(v, dtype=float)
-    k = stats.kstest(v, "norm", args=(v.mean(), np.std(v, ddof=1)))
+    s = np.std(v, ddof=1)
+    if not np.isfinite(s) or s <= 0:
+        return np.nan, np.nan
+    k = stats.kstest((v - v.mean()) / s, "norm")
     return float(k.statistic), float(k.pvalue)
 
 

@@ -1,0 +1,145 @@
+cff-version: 1.2.0
+message: >-
+  This software is a port. If it contributes to work you publish, please cite
+  the R reference implementation it is ported from (listed under references
+  below) and the paper behind the estimator you used, in addition to or instead
+  of this port.
+title: "copulaendog: instrument-free Gaussian copula endogeneity corrections for Stata and Python"
+abstract: >-
+  Stata and Python ports of five cross-sectional Gaussian copula corrections
+  for endogenous regressors in linear models: Park and Gupta (2012), the
+  two-stage copula generated regressor approach of Yang, Qian and Xie (2025),
+  the between-regressor correlation variant of Haschka (2025), the
+  nonlinear-transformation approach of Breitung, Mayer and Wied (2024), and the
+  adjusted estimator of Liengaard et al. (2025). Ported from the R reference
+  implementation of Rouven E. Haschka and from the endogCopula package of
+  Ashwin Malshe.
+type: software
+authors:
+  - family-names: Mallapragada
+    given-names: Girish
+version: 0.1.0
+license: GPL-3.0-or-later
+repository-code: "https://github.com/girishm77/copulaendog"
+keywords:
+  - endogeneity
+  - Gaussian copula
+  - control function
+  - instrument-free identification
+  - econometrics
+  - Stata
+  - Python
+
+references:
+  - type: software
+    title: "Copula-based endogeneity corrections in R"
+    authors:
+      - family-names: Haschka
+        given-names: Rouven E.
+        orcid: "https://orcid.org/0000-0002-2916-9745"
+    year: 2026
+    repository-code: "https://github.com/HashtagHaschka/Copula-based-endogeneity-corrections"
+    notes: >-
+      The reference implementation this port is derived from. Every estimator,
+      every CDF estimator, the bootstrap, the diagnostics and the validity
+      report come from it.
+
+  - type: software
+    title: "endogCopula: Endogeneity Corrections via Gaussian Copulas"
+    authors:
+      - family-names: Malshe
+        given-names: Ashwin
+    repository-code: "https://github.com/ashgreat/endogCopula"
+    notes: >-
+      The packaged R version of the same estimators, which shaped how this port
+      is organised and what its documented interface looks like.
+
+  - type: article
+    title: "Handling endogenous regressors by joint estimation using copulas"
+    authors:
+      - family-names: Park
+        given-names: Sungho
+      - family-names: Gupta
+        given-names: Sachin
+    journal: "Marketing Science"
+    volume: 31
+    issue: 4
+    start: 567
+    end: 586
+    year: 2012
+    doi: "10.1287/mksc.1120.0718"
+
+  - type: article
+    title: "Addressing endogeneity using a two-stage copula generated regressor approach"
+    authors:
+      - family-names: Yang
+        given-names: Fan
+      - family-names: Qian
+        given-names: Yi
+      - family-names: Xie
+        given-names: Hui
+    journal: "Journal of Marketing Research"
+    volume: 62
+    issue: 4
+    start: 601
+    end: 623
+    year: 2025
+    doi: "10.1177/00222437241296453"
+
+  - type: article
+    title: >-
+      Robustness of copula-correction models in causal analysis: Exploiting
+      between-regressor correlation
+    authors:
+      - family-names: Haschka
+        given-names: Rouven E.
+    journal: "IMA Journal of Management Mathematics"
+    volume: 36
+    issue: 1
+    start: 161
+    end: 180
+    year: 2025
+    doi: "10.1093/imaman/dpae018"
+
+  - type: article
+    title: >-
+      Asymptotic properties of endogeneity corrections using nonlinear
+      transformations
+    authors:
+      - family-names: Breitung
+        given-names: Jörg
+      - family-names: Mayer
+        given-names: Alexander
+      - family-names: Wied
+        given-names: Dominik
+    journal: "The Econometrics Journal"
+    volume: 27
+    issue: 3
+    start: 362
+    end: 383
+    year: 2024
+    doi: "10.1093/ectj/utae002"
+
+  - type: article
+    title: >-
+      Dealing with regression models' endogeneity by means of an adjusted
+      estimator for the Gaussian copula approach
+    authors:
+      - family-names: Liengaard
+        given-names: Benjamin D.
+      - family-names: Becker
+        given-names: Jan-Michael
+      - family-names: Bennedsen
+        given-names: Mikkel
+      - family-names: Heiler
+        given-names: Phillip
+      - family-names: Taylor
+        given-names: Luke N.
+      - family-names: Ringle
+        given-names: Christian M.
+    journal: "Journal of the Academy of Marketing Science"
+    volume: 53
+    start: 279
+    end: 299
+    year: 2025
+    doi: "10.1007/s11747-024-01055-4"

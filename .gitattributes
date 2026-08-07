@@ -1,0 +1,14 @@
+# This repo is worked on from both macOS and Windows.  Normalise everything
+# text to LF in the repository so that a round trip through a Windows editor
+# does not show up as every line changed.
+* text=auto eol=lf
+
+# Stata reads .do, .ado and .sthlp fine with either ending; LF keeps diffs
+# honest.
+*.do    text eol=lf
+*.ado   text eol=lf
+*.sthlp text eol=lf
+
+*.pdf   binary
+*.rda   binary
+*.png   binary
