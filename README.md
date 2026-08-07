@@ -36,7 +36,10 @@ paper behind the estimator you used.
 
 This work was inspired by, and is derived from, the R implementations above.
 The Stata command and the Python package were developed by **Girish
-Mallapragada** using [Claude](https://claude.ai). Everything here is a
+Mallapragada**
+([LinkedIn](https://www.linkedin.com/in/girishmallapragada/) ·
+[Google Scholar](https://scholar.google.com/citations?user=CixA1fgAAAAJ&hl=en))
+using [Claude](https://claude.ai). Everything here is a
 translation of someone else's econometrics into two more languages, checked
 line by line against their results; the credit for the methods belongs to the
 authors named above and to the papers they implement.

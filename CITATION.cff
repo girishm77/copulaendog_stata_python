@@ -18,6 +18,7 @@ type: software
 authors:
   - family-names: Mallapragada
     given-names: Girish
+    website: "https://scholar.google.com/citations?user=CixA1fgAAAAJ&hl=en"
 version: 0.1.0
 license: GPL-3.0-or-later
 repository-code: "https://github.com/girishm77/copulaendog_stata_python"
