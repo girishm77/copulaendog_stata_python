@@ -1,3 +1,4 @@
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -5,15 +6,20 @@ __pycache__/
 build/
 dist/
 
-# LaTeX build products; vignette.pdf itself is committed
-docs/*.aux
-docs/*.log
-docs/*.out
+# Byproducts of running things.  These were path-scoped before, which let a
+# stray sv.log at the repository root through; the patterns are global now.
+# Note there is deliberately no global *.toc rule: stata/stata.toc is a
+# package file, not a LaTeX table of contents.
+*.log
+*.aux
+*.out
+*.smcl
 docs/*.toc
 
-# Stata
-*.smcl
-validation/*.log
+# docs/vignette.pdf is committed on purpose -- it is a deliverable, and not
+# everyone reading the repository has a LaTeX toolchain.
+
+# Scratch do-files from earlier debugging
 validation/lic.do
 validation/test1.do
 
