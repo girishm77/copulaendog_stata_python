@@ -1,5 +1,9 @@
 # copulaendog — instrument-free copula corrections, in Stata and Python
 
+[![PyPI](https://img.shields.io/pypi/v/copulaendog)](https://pypi.org/project/copulaendog/)
+[![Python](https://img.shields.io/pypi/pyversions/copulaendog)](https://pypi.org/project/copulaendog/)
+[![Licence](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue)](LICENSE)
+
 Corrects endogenous regressors in a linear model when you have no instrument,
 or none you trust. The dependence between the regressor and the structural
 error is modelled with a Gaussian copula and the resulting control function is
@@ -113,11 +117,10 @@ Declared for Python 3.9 and later. The test suite has been run on 3.13 against
 two dependency stacks: numpy 2.3 / scipy 1.16 / pandas 2.3, and numpy 2.5 /
 scipy 1.18 / pandas 3.0.
 
-> **Status of the two package archives.** `ssc install` and `pip install
-> copulaendog` go live once the submissions are accepted — SSC is reviewed by
-> hand and PyPI takes a release upload. Until then use the `net install` and
-> `pip install git+...` forms above, which work today and install exactly the
-> same code.
+> **SSC is still pending.** The package has been submitted; SSC is reviewed by
+> hand, so `ssc install copulaendog` starts working only once it is accepted.
+> Until then use the `net install` form above, which installs exactly the same
+> files. PyPI is live: `pip install copulaendog` works now.
 
 ---
 
