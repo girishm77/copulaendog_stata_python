@@ -34,13 +34,13 @@ dependencies = [
 test = ["pytest>=7"]
 
 [project.urls]
-Homepage = "https://github.com/girishm77/copulaendog"
+Homepage = "https://github.com/girishm77/copulaendog_stata_python"
 "Reference implementation (R)" = "https://github.com/HashtagHaschka/Copula-based-endogeneity-corrections"
 "endogCopula (R package)" = "https://github.com/ashgreat/endogCopula"
 
 # The Python package lives under python/ because the repository also ships a
 # Stata command and a LaTeX vignette.  Keeping the build file at the root is
-# what lets `pip install git+https://github.com/girishm77/copulaendog` work
+# what lets `pip install git+https://github.com/girishm77/copulaendog_stata_python` work
 # without a subdirectory fragment, and what puts README.md and the two licence
 # files into the distribution -- the GPL and its section 7(b) attribution term
 # have to travel with the code.

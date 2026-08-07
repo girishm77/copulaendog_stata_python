@@ -49,7 +49,7 @@ help copulaendog
 patsy come with it.
 
 ```bash
-pip install git+https://github.com/girishm77/copulaendog
+pip install git+https://github.com/girishm77/copulaendog_stata_python
 ```
 
 Or, to work on the source without installing it:
