@@ -32,6 +32,15 @@ Five cross-sectional estimators behind one interface:
 If this code contributes to published work, please cite both of those and the
 paper behind the estimator you used.
 
+### Authorship
+
+This work was inspired by, and is derived from, the R implementations above.
+The Stata command and the Python package were developed by **Girish
+Mallapragada** using [Claude](https://claude.ai). Everything here is a
+translation of someone else's econometrics into two more languages, checked
+line by line against their results; the credit for the methods belongs to the
+authors named above and to the papers they implement.
+
 ---
 
 ## Try it without installing anything
