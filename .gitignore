@@ -1,3 +1,27 @@
+# ---------------------------------------------------------------------------
+# Secrets.  This repository is PUBLIC.  Nothing matching these may be added.
+#
+# These patterns are a guard against an accidental `git add -A`, not a
+# guarantee: `git add -f` overrides them, and tools that are not git do not
+# consult them at all.  Credentials should live outside the working tree
+# entirely -- a password manager, or a directory that is not a git repository.
+# ---------------------------------------------------------------------------
+*[Rr]ecovery-[Cc]odes*
+*[Rr]ecovery_[Cc]odes*
+*RecoveryCodes*
+*[Cc]redential*
+*[Ss]ecret*
+*_token*
+*-token*
+.pypirc
+.netrc
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+
 # Python
 __pycache__/
 *.py[cod]
